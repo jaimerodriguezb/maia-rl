@@ -143,6 +143,341 @@ Analisis 1
   These features allow learning with function approximation instead of storing explicit Q-values for every (state, action) pair.
 ################################################################################################
 
+Analisis 2
+################################################################################################
+> Understan de the pacman code and find where the statuses, actions and rewards are implemented.
+
+⏺ I'll analyze the Pacman codebase to understand where statuses, actions, and rewards are implemented. Let me start by exploring the structure of the
+  project.
+
+⏺ Bash(find . -name "*.py" | head -20)
+  ⎿  ./qlearningAgents.py          
+     ./pacman.py
+     ./pacmanAgents.py
+     … +17 lines (ctrl+r to expand)
+
+⏺ Search(pattern: "*.py")
+  ⎿  Found 28 files (ctrl+r to expand)
+
+⏺ Let me examine the key files that likely contain the core game mechanics, starting with game.py, pacman.py, and environment.py:
+
+⏺ Read(game.py)
+  ⎿  Read 779 lines (ctrl+r to expand)
+
+⏺ Read(pacman.py)
+  ⎿  Read 739 lines (ctrl+r to expand)
+
+⏺ Read(environment.py)
+  ⎿  Read 57 lines (ctrl+r to expand)
+
+⏺ Now let me examine additional key files to understand the reinforcement learning specific components:
+
+⏺ Read(mdp.py)
+  ⎿  Read 68 lines (ctrl+r to expand)
+
+⏺ Read(gridworld.py)
+  ⎿  Read 590 lines (ctrl+r to expand)
+
+⏺ Now let me look at the reinforcement learning agent files to see how rewards and learning work:
+
+⏺ Read(learningAgents.py)
+  ⎿  Read 100 lines (ctrl+r to expand)
+
+⏺ Read(qlearningAgents.py)
+  ⎿  Read 100 lines (ctrl+r to expand)
+
+⏺ Now let me search for more details about how rewards are implemented in the Pacman specific environment:
+
+⏺ Search(pattern: "scoreChange|reward|score", glob: "*.py", output_mode: "content")
+  ⎿  Found 92 lines (ctrl+r to expand)
+
+⏺ Based on my analysis of the Pacman codebase, here's where the statuses, actions, and rewards are implemented:
+
+  Game States/Statuses
+
+  Main Implementation: game.py and pacman.py
+
+  - GameState class (pacman.py:61-263): Core state representation
+    - isWin() (pacman.py:221): Terminal win condition
+    - isLose() (pacman.py:218): Terminal loss condition
+    - State includes: agent positions, food, capsules, score, walls
+  - GameStateData class (game.py:396-539): Internal state data
+    - _win and _lose flags (game.py:415)
+    - score and scoreChange tracking (game.py:408, 416)
+
+  Actions
+
+  Main Implementation: game.py
+
+  - Directions class (game.py:53-73): Available actions
+    - NORTH, SOUTH, EAST, WEST, STOP
+    - Direction mappings (LEFT, RIGHT, REVERSE)
+  - Actions class (game.py:307-394): Action handling utilities
+    - getPossibleActions() (game.py:352): Legal moves based on walls
+    - directionToVector() (game.py:347): Convert actions to movement vectors
+  - Agent action selection:
+    - PacmanRules.getLegalActions() (pacman.py:347): Pacman-specific legal actions
+    - GhostRules.getLegalActions() (pacman.py:406): Ghost-specific legal actions
+
+  Rewards
+
+  Main Implementation: Multiple files with different reward systems
+
+  Pacman Game Rewards (pacman.py)
+
+  - Food consumption: +10 points (pacman.py:381)
+  - Winning bonus: +500 points for eating all food (pacman.py:388)
+  - Time penalty: -1 point per move (pacman.py:122, 274)
+  - Capsule collection: +200 points when eating scared ghost (pacman.py:462)
+  - Death penalty: -500 points when killed by ghost (pacman.py:469)
+
+  Gridworld Rewards (gridworld.py)
+
+  - Living reward: Configurable penalty for each step (gridworld.py:32, 43)
+  - Terminal rewards: Numeric values in grid cells (gridworld.py:92-94)
+  - Environment reward calculation: getReward() (gridworld.py:80-94)
+
+  Reinforcement Learning Integration
+
+  - Reward observation: learningAgents.py:212 - calculates reward as score difference
+  - Q-learning update: qlearningAgents.py:141 - uses reward in Q-value updates
+  - Environment interface: environment.py:39 - doAction() returns (reward, nextState) pair
+
+  The reward system supports both discrete game scoring (Pacman) and continuous reinforcement learning through score differentials.
+
+> Find where the parameters x, n, l, epsilon, alpha, gamma, are handled.
+
+⏺ I'll search through the codebase to find where these reinforcement learning parameters are handled.
+
+⏺ Search(pattern: "epsilon|alpha|gamma|discount", glob: "*.py", output_mode: "content")
+  ⎿  Found 131 lines (ctrl+r to expand)
+
+⏺ Search(pattern: "\-x|\-n|\-l", glob: "*.py", output_mode: "content")
+  ⎿  Found 29 lines (ctrl+r to expand)
+
+⏺ Now let me look at command line argument parsing to find these specific parameters:
+
+⏺ Read(gridworld.py)
+  ⎿  Read 50 lines (ctrl+r to expand)
+
+⏺ Read(pacman.py)
+  ⎿  Read 20 lines (ctrl+r to expand)
+
+⏺ Search(pattern: "numTraining|numGames", glob: "*.py", output_mode: "content", head_limit: 10)
+  ⎿  Found 10 lines (ctrl+r to expand)
+
+⏺ Based on my analysis of the codebase, here's where each parameter (x, n, l, epsilon, alpha, gamma) is handled:
+
+  Parameter x (numTraining)
+
+  Command Line: -x, --numTraining (pacman.py:549)
+  - Usage: Number of training episodes (suppresses output during training)
+  - Default: 0
+  - Implementation:
+    - Passed to agent constructor (pacman.py:580)
+    - Controls quiet mode during training (pacman.py:683)
+    - Used in runGames() to suppress graphics for first x games (pacman.py:675)
+
+  Parameter n (numGames OR noise)
+
+  In Pacman: -n, --numGames (pacman.py:519)
+
+  - Usage: Total number of games to play
+  - Default: 1
+  - Implementation: Controls main game loop (pacman.py:682)
+
+  In Gridworld: -n, --noise (gridworld.py:388)
+
+  - Usage: Probability of unintended movement direction
+  - Default: 0.2
+  - Implementation: Set on MDP (gridworld.py:460)
+
+  Parameter l (learningRate)
+
+  Command Line: -l, --learningRate (gridworld.py:395)
+  - Usage: TD (Temporal Difference) learning rate
+  - Default: 0.5
+  - Implementation:
+    - Passed to Q-learning agent in qLearnOpts (gridworld.py:492)
+    - Used as alpha parameter in agent constructor
+
+  Parameter epsilon (exploration rate)
+
+  Command Line: -e, --epsilon (gridworld.py:392)
+  - Usage: Probability of taking random action in ε-greedy exploration
+  - Default: 0.3
+  - Implementation:
+    - Agent initialization: learningAgents.py:45, qlearningAgents.py:156
+    - Action selection: qlearningAgents.py:119 - util.flipCoin(self.epsilon)
+    - Training control: Set to 0.0 after training ends (learningAgents.py:154)
+
+  Parameter alpha (learning rate)
+
+  Direct usage in agent classes:
+  - Agent initialization: learningAgents.py:44, qlearningAgents.py:156
+  - Q-value updates: qlearningAgents.py:141
+  self.qValues[(state, action)] = (1-self.alpha) * self.getQValue(state, action) + self.alpha * (reward + self.discount *
+  self.computeValueFromQValues(nextState))
+  - Setter method: learningAgents.py:189-190
+  - Training control: Set to 0.0 after training (learningAgents.py:155)
+
+  Parameter gamma (discount factor)
+
+  Command Line: -d, --discount (gridworld.py:382)
+  - Usage: Discount factor for future rewards
+  - Default: 0.9
+  - Implementation:
+    - Value iteration: valueIterationAgents.py:83, 106
+    - Q-learning updates: qlearningAgents.py:142
+    - Agent initialization: Stored as self.discount (learningAgents.py:46)
+    - Alternative name: Often referenced as gamma in option dictionaries (gridworld.py:491)
+
+  Parameter Flow:
+
+  1. Command line parsing → Agent options dictionary → Agent constructor → Algorithm implementation
+  2. Parameters can be set via command line or directly in agent constructor
+  3. GUI controls available in crawler display (graphicsCrawlerDisplay.py:51-65)
+
+> would you be able to determine how the pacman behavior changes as the parameters value do as well?
+
+⏺ I'll analyze how Pacman's behavior changes with different parameter values by examining the code implementation and understanding the reinforcement
+  learning dynamics.
+
+⏺ Read(qlearningAgents.py)
+  ⎿  Read 50 lines (ctrl+r to expand)
+
+⏺ Read(learningAgents.py)
+  ⎿  Read 30 lines (ctrl+r to expand)
+
+⏺ Read(valueIterationAgents.py)
+  ⎿  Read 30 lines (ctrl+r to expand)
+
+⏺ Based on my analysis of the code implementation, here's how Pacman's behavior changes with different parameter values:
+
+  Epsilon (ε) - Exploration Rate
+
+  Code Location: qlearningAgents.py:119 - util.flipCoin(self.epsilon)
+
+  Lower Epsilon (0.0 - 0.2):
+
+  - Behavior: More exploitative - follows learned policy strictly
+  - Early stages: Poor performance due to insufficient exploration
+  - Later stages: Consistent, optimal behavior once good policy is learned
+  - Risk: Gets stuck in suboptimal strategies
+
+  Higher Epsilon (0.7 - 1.0):
+
+  - Behavior: More exploratory - takes random actions frequently
+  - Early stages: Better exploration, discovers new strategies
+  - Later stages: Inconsistent, suboptimal performance due to random choices
+  - Risk: Never converges to optimal policy
+
+  After Training: Set to 0.0 (learningAgents.py:154) - pure exploitation
+
+  Alpha (α) - Learning Rate
+
+  Code Location: qlearningAgents.py:141 - Q-value update formula
+
+  Lower Alpha (0.1 - 0.3):
+
+  - Learning: Slow, cautious updates to Q-values
+  - Stability: More stable, less sensitive to individual experiences
+  - Convergence: Takes longer but more reliable
+  - Behavior: Conservative policy changes, gradual improvement
+
+  Higher Alpha (0.7 - 1.0):
+
+  - Learning: Fast, aggressive updates to Q-values
+  - Stability: Less stable, very sensitive to recent experiences
+  - Convergence: Faster initial learning but may oscillate
+  - Behavior: Rapid policy changes, potentially erratic
+
+  After Training: Set to 0.0 (learningAgents.py:155) - no more learning
+
+  Gamma (γ) - Discount Factor
+
+  Code Location: qlearningAgents.py:142, valueIterationAgents.py:83, 106
+
+  Lower Gamma (0.1 - 0.5):
+
+  - Strategy: Myopic - focuses on immediate rewards
+  - Behavior: Prioritizes nearby food, avoids long-term planning
+  - Risk-taking: More willing to take risks for immediate gains
+  - Ghost avoidance: Less concerned about future ghost encounters
+
+  Higher Gamma (0.8 - 0.99):
+
+  - Strategy: Far-sighted - considers long-term consequences
+  - Behavior: Plans multi-step strategies, considers future rewards
+  - Risk-taking: More cautious, avoids actions that lead to future danger
+  - Ghost avoidance: Strongly considers future ghost positions
+
+  Gamma = 1.0:
+
+  - Strategy: Equal weight to all future rewards
+  - Risk: May cause convergence issues in infinite environments
+
+  NumTraining (x) - Training Episodes
+
+  Code Location: learningAgents.py:152-155
+
+  Low NumTraining (10 - 50):
+
+  - Learning: Insufficient learning time
+  - Performance: Poor initial performance, inconsistent strategies
+  - Exploration: Stops exploring before finding good policies
+  - Q-values: Incomplete, inaccurate value estimates
+
+  High NumTraining (500 - 2000):
+
+  - Learning: Extensive learning period
+  - Performance: Better converged policies, more consistent behavior
+  - Exploration: Sufficient time to discover optimal strategies
+  - Q-values: More accurate, well-trained estimates
+
+  Noise (n) - Movement Uncertainty
+
+  Code Location: gridworld.py:143, 153 - transition probabilities
+
+  Low Noise (0.0 - 0.1):
+
+  - Movement: Deterministic, reliable actions
+  - Strategy: Can use precise positioning strategies
+  - Learning: Faster convergence due to predictable outcomes
+  - Risk: Overconfident in narrow corridors
+
+  High Noise (0.4 - 0.8):
+
+  - Movement: Unpredictable, often goes in wrong direction
+  - Strategy: Must account for movement uncertainty
+  - Learning: Slower convergence, learns robust policies
+  - Behavior: Avoids risky positions near ghosts/walls
+
+  Learning Rate (l) - Same as Alpha
+
+  When used in gridworld (gridworld.py:395), has same effects as alpha parameter above.
+
+  Combined Effects Examples:
+
+  Aggressive Learner: High α, High ε, Low γ
+
+  - Learns fast but focuses on immediate rewards, explores extensively
+  - Good for dynamic environments, poor for complex strategies
+
+  Conservative Learner: Low α, Low ε, High γ
+
+  - Learns slowly but develops stable long-term strategies
+  - Good for complex environments requiring planning
+
+  Balanced Learner: Medium values (α=0.5, ε=0.3, γ=0.9)
+
+  - Reasonable exploration-exploitation trade-off
+  - Good general-purpose configuration
+
+  The key insight is that these parameters control the exploration-exploitation trade-off, learning speed vs stability, and short-term vs long-term thinking
+  in Pacman's decision-making process.
+
+################################################################################################
 
 
 
